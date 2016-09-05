@@ -11,7 +11,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -38,12 +37,13 @@ import rx.Subscriber;
 
 public class MainActivity extends AppCompatActivity {
 
-    @BindView(R.id.toolbar)
-    Toolbar toolbar;
+
     @BindView(R.id.recycler)
     RecyclerView recycler;
     @BindView(R.id.swipe_refresh_layout)
     SwipeRefreshLayout swipeRefreshLayout;
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
 
     private NewsBroadcastReceiver receiver;
     private ArrayList<Story> storyArrayList = new ArrayList<>();
@@ -63,11 +63,19 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        receiver = new NewsBroadcastReceiver();
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
-        toolbar.setNavigationIcon(R.drawable.ic_format_list_bulleted_white_24dp);
-        toolbar.setTitle(R.string.toolbar_main_title);
+        toolbar.inflateMenu(R.menu.menu_main_toolbar);
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.night_theme:
+                        setTheme(R.style.NightTheme);
+                        break;
+                }
+                return true;
+            }
+        });
+
         //双击toolbar回到顶部
         DoubleClick.registerDoubleClickListener(toolbar, new DoubleClick.OnDoubleClickListener() {
             @Override
@@ -87,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        receiver = new NewsBroadcastReceiver();
         layoutManager = new LinearLayoutManager(this);
         recycler.setLayoutManager(layoutManager);
         storyRecyclerAdapter = new StoryRecyclerAdapter(this, storyArrayList, topStoryList);
@@ -256,22 +265,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main_toolbar, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.night_theme:
-                setTheme(R.style.NightTheme);
-                break;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     public class NewsBroadcastReceiver extends BroadcastReceiver {
